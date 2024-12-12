@@ -2,9 +2,16 @@
 
 import React, { useState, useCallback } from "react";
 import Map, { Source, Layer, Popup } from "react-map-gl";
-import { latLngToCell, cellToBoundary, getIcosahedronFaces, getBaseCellNumber, isPentagon, cellArea } from "h3-js";
+import {
+    latLngToCell,
+    cellToBoundary,
+    getIcosahedronFaces,
+    getBaseCellNumber,
+    isPentagon,
+    cellArea,
+} from "h3-js";
 
-const HexMap = ({ setHexDetails }) => {
+const MapDetails = ({ setHexDetails }) => {
     const [viewport, setViewport] = useState({
         latitude: 37.7749,
         longitude: -122.4194,
@@ -14,16 +21,20 @@ const HexMap = ({ setHexDetails }) => {
     const [selectedHexSizes, setSelectedHexSizes] = useState([7]); // Default resolution
     const [selectedHexes, setSelectedHexes] = useState([]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [mapStyle, setMapStyle] = useState("mapbox://styles/mapbox/streets-v11"); // Default map style
+    const [mapStyle, setMapStyle] = useState(
+        "mapbox://styles/mapbox/streets-v11"
+    ); // Default map style
     const [popupInfo, setPopupInfo] = useState(null); // Holds info to display in the popup
 
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
     // Handle multiple hex size selection
     const handleHexSizeChange = (event) => {
-        const selectedSizes = Array.from(event.target.selectedOptions, (option) => parseInt(option.value));
+        const selectedSizes = Array.from(event.target.selectedOptions, (option) =>
+            parseInt(option.value)
+        );
         setSelectedHexSizes(selectedSizes);
-        setIsDropdownOpen(false); // Close the dropdown after selection
+        setIsDropdownOpen(false);
     };
 
     // Draw hexagons for selected sizes
@@ -60,40 +71,53 @@ const HexMap = ({ setHexDetails }) => {
         const { lat, lng } = event.lngLat;
         if (!lat || !lng) return;
 
-        // Ensure lat/lng are valid before passing to latLngToCell
+
         if (isNaN(lat) || isNaN(lng)) return;
 
-        // Convert click coordinates to hex index based on the selected size
-        const hexIndex = latLngToCell(lat, lng, selectedHexSizes[0]); // Use the first selected size for simplicity
+
+        const hexIndex = latLngToCell(lat, lng, selectedHexSizes[0]);
+
 
         // Get Icosahedron Faces, Base Cell, Boundary Vertices, and Pentagon status
-        const faces = getIcosahedronFaces(hexIndex); // Get Icosahedron Face IDs
-        const boundaryVerts = cellToBoundary(hexIndex); // Get Boundary Vertices
-        const baseCell = getBaseCellNumber(hexIndex); // Get Base cell number using the correct method
-        const isPent = isPentagon(hexIndex); // Check if it's a Pentagon
+        const faces = getIcosahedronFaces(hexIndex);
+        const boundaryVerts = cellToBoundary(hexIndex);
 
-        // Calculate the area of the cell in square kilometers (or any other unit you prefer)
-        const areaInKm2 = cellArea(hexIndex, "km2"); // Use "m2", "km2", or "mi2" for different units
+        const baseCell = getBaseCellNumber(hexIndex);
+
+        const isPent = isPentagon(hexIndex);
+
+
+        // Calculate the area of the cell in square kilometers 
+        const areaInKm2 = cellArea(hexIndex, "km2");
 
         // Show popup with all relevant details
         setPopupInfo({
             lat,
             lng,
-            hexIndex, // Add hexIndex here
+            hexIndex,
             faces,
-            numBoundaryVerts: boundaryVerts.length, // Number of Boundary Vertices
+            numBoundaryVerts: boundaryVerts.length,
             baseCell,
-            isPentagon: isPent ? "Yes" : "No", // Pentagon status
-            area: areaInKm2, // Display the area
+            isPentagon: isPent ? "Yes" : "No",
+            area: areaInKm2,
         });
 
-        // Toggle the selected hex (remove it if it's already selected, add it if it's not)
+        // Toggle the selected hex 
         setSelectedHexes((prev) => {
             const hexExists = prev.some((hex) => hex.hexIndex === hexIndex);
             if (hexExists) {
                 return prev.filter((hex) => hex.hexIndex !== hexIndex);
             } else {
-                const newHex = { hexIndex, lat, lng, faces, numBoundaryVerts: boundaryVerts.length, baseCell, isPentagon: isPent, areaInKm2 };
+                const newHex = {
+                    hexIndex,
+                    lat,
+                    lng,
+                    faces,
+                    numBoundaryVerts: boundaryVerts.length,
+                    baseCell,
+                    isPentagon: isPent,
+                    areaInKm2,
+                };
                 return [...prev, newHex];
             }
         });
@@ -104,7 +128,16 @@ const HexMap = ({ setHexDetails }) => {
             if (hexExists) {
                 return prev.filter((hex) => hex.hexIndex !== hexIndex);
             } else {
-                const newHex = { hexIndex, lat, lng, faces, numBoundaryVerts: boundaryVerts.length, baseCell, isPentagon: isPent, areaInKm2 };
+                const newHex = {
+                    hexIndex,
+                    lat,
+                    lng,
+                    faces,
+                    numBoundaryVerts: boundaryVerts.length,
+                    baseCell,
+                    isPentagon: isPent,
+                    areaInKm2,
+                };
                 return [...prev, newHex];
             }
         });
@@ -113,7 +146,9 @@ const HexMap = ({ setHexDetails }) => {
     // Toggle map style (Satellite / Basic)
     const toggleMapStyle = () => {
         setMapStyle((prevStyle) =>
-            prevStyle === "mapbox://styles/mapbox/streets-v11" ? "mapbox://styles/mapbox/satellite-streets-v11" : "mapbox://styles/mapbox/streets-v11"
+            prevStyle === "mapbox://styles/mapbox/streets-v11"
+                ? "mapbox://styles/mapbox/satellite-streets-v11"
+                : "mapbox://styles/mapbox/streets-v11"
         );
     };
 
@@ -122,7 +157,7 @@ const HexMap = ({ setHexDetails }) => {
             {/* Navbar */}
             <nav className="bg-gray-800 p-4 shadow-md z-20">
                 <div className="flex justify-between items-center text-white">
-                    <div className="text-xl font-semibold">Hex Map</div>
+                    <div className="text-xl font-semibold"></div>
 
                     {/* Hex Size Button */}
                     <button
@@ -137,7 +172,7 @@ const HexMap = ({ setHexDetails }) => {
                         className="bg-green-500 p-2 rounded-md text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400"
                         onClick={toggleMapStyle}
                     >
-                        Toggle Satellite View
+                        Toggle For View
                     </button>
                 </div>
             </nav>
@@ -145,7 +180,10 @@ const HexMap = ({ setHexDetails }) => {
             {/* Hex Size Dropdown */}
             {isDropdownOpen && (
                 <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-white p-4 shadow-lg rounded-md w-48 z-30 overflow-hidden">
-                    <label htmlFor="hex-size" className="block text-lg font-medium text-gray-700 mb-2">
+                    <label
+                        htmlFor="hex-size"
+                        className="block text-lg font-medium text-gray-700 mb-2"
+                    >
                         Choose Hex Sizes:
                     </label>
                     <select
@@ -175,6 +213,7 @@ const HexMap = ({ setHexDetails }) => {
                         mapboxAccessToken={mapboxToken}
                         onMoveEnd={onMapMove}
                         onClick={handleMapClick}
+                        attributionControl={false}
                     >
                         <Source
                             id="hexes"
@@ -237,21 +276,24 @@ const HexMap = ({ setHexDetails }) => {
                 {/* Hex Details Section */}
                 <div className="w-1/3 p-4 bg-gray-100">
                     <h2 className="text-lg font-semibold text-gray-800">Hex Details</h2>
-                    {popupInfo ? (
+                    {selectedHexes.length > 0 ? (
                         <div>
-                            <p className="text-sm text-gray-800">
-                                <strong>Lat./Lng.:</strong> {popupInfo.lat.toFixed(5)}, {popupInfo.lng.toFixed(5)}
-                            </p>
-                            <p className="text-sm text-gray-800"><strong>Hex Index:</strong> {popupInfo.hexIndex}</p>
-                            <p className="text-sm text-gray-800"><strong>Area:</strong> {popupInfo.area.toFixed(2)} km²</p>
-                            <p className="text-sm text-gray-800"><strong>Base Cell:</strong> {popupInfo.baseCell}</p>
-                            <p className="text-sm text-gray-800"><strong>Is Pentagon:</strong> {popupInfo.isPentagon}</p>
-                            <p className="text-sm text-gray-800"><strong>Number of Boundary Vertices:</strong> {popupInfo.numBoundaryVerts}</p>
+                            {selectedHexes.map((hex, index) => (
+                                <div key={index} className="mb-4">
+                                    <p className="text-sm text-gray-800">Hex Index:{hex.hexIndex}</p>
+                                    <p className="text-sm text-gray-800">Lat./Lng.: {hex.lat.toFixed(5)}, {hex.lng.toFixed(5)}
+                                    </p>
+                                    <p className="text-sm text-gray-800">Base Cell: {hex.baseCell}</p>
+                                    <p className="text-sm text-gray-800">Is Pentagon: {hex.isPentagon ? "True" : "False"}</p>
+                                    <p className="text-sm text-gray-800">Icosa Face IDs: {popupInfo.faces.join(", ")}</p>
+                                    <p className="text-sm text-gray-800"># of Boundary Verts: {hex.numBoundaryVerts}</p>
+                                    <p className="text-sm text-gray-800">Area: {hex.areaInKm2.toFixed(2)} km²</p>
 
-
+                                </div>
+                            ))}
                         </div>
                     ) : (
-                        <p className="text-sm text-gray-600">Click on a hex to see details</p>
+                        <p className="text-sm text-gray-800">Click on the map to select hex.</p>
                     )}
                 </div>
             </div>
@@ -259,4 +301,4 @@ const HexMap = ({ setHexDetails }) => {
     );
 };
 
-export default HexMap;
+export default MapDetails;
