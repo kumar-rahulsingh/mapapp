@@ -71,12 +71,9 @@ const MapDetails = ({ setHexDetails }) => {
         const { lat, lng } = event.lngLat;
         if (!lat || !lng) return;
 
-
         if (isNaN(lat) || isNaN(lng)) return;
 
-
         const hexIndex = latLngToCell(lat, lng, selectedHexSizes[0]);
-
 
         // Get Icosahedron Faces, Base Cell, Boundary Vertices, and Pentagon status
         const faces = getIcosahedronFaces(hexIndex);
@@ -86,8 +83,7 @@ const MapDetails = ({ setHexDetails }) => {
 
         const isPent = isPentagon(hexIndex);
 
-
-        // Calculate the area of the cell in square kilometers 
+        // Calculate the area of the cell in square kilometers
         const areaInKm2 = cellArea(hexIndex, "km2");
 
         // Show popup with all relevant details
@@ -102,7 +98,7 @@ const MapDetails = ({ setHexDetails }) => {
             area: areaInKm2,
         });
 
-        // Toggle the selected hex 
+        // Toggle the selected hex
         setSelectedHexes((prev) => {
             const hexExists = prev.some((hex) => hex.hexIndex === hexIndex);
             if (hexExists) {
@@ -208,7 +204,6 @@ const MapDetails = ({ setHexDetails }) => {
                         <option value={13}>Size 13</option>
                         <option value={14}>Size 14</option>
                         <option value={15}>Size 15</option>
-
                     </select>
                 </div>
             )}
@@ -291,20 +286,19 @@ const MapDetails = ({ setHexDetails }) => {
                         <div>
                             {selectedHexes.map((hex, index) => (
                                 <div key={index} className="mb-4">
-                                    <p className="text-sm text-gray-800">Hex Index:{hex.hexIndex}</p>
-                                    <p className="text-sm text-gray-800">Lat./Lng.: {hex.lat.toFixed(5)}, {hex.lng.toFixed(5)}
-                                    </p>
+                                    <p className="text-sm text-gray-800">Hex Index: {hex.hexIndex}</p>
+                                    <p className="text-sm text-gray-800">Lat./Lng.: {hex.lat.toFixed(5)}, {hex.lng.toFixed(5)}</p>
                                     <p className="text-sm text-gray-800">Base Cell: {hex.baseCell}</p>
                                     <p className="text-sm text-gray-800">Is Pentagon: {hex.isPentagon ? "True" : "False"}</p>
                                     <p className="text-sm text-gray-800">Icosa Face IDs: {popupInfo.faces.join(", ")}</p>
                                     <p className="text-sm text-gray-800"># of Boundary Verts: {hex.numBoundaryVerts}</p>
                                     <p className="text-sm text-gray-800">Area: {hex.areaInKm2.toFixed(2)} km²</p>
-
+                                    <p className="text-sm text-gray-800">Resolution: {selectedHexSizes.join(", ")}</p> {/* Added Resolution */}
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <p className="text-sm text-gray-800">Click on the map to select hex.</p>
+                        <p className="text-sm text-gray-600">Click on a hexagon to see details</p>
                     )}
                 </div>
             </div>
