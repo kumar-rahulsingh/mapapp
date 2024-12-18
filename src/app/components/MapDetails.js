@@ -17,9 +17,8 @@ const MapDetails = ({ setHexDetails }) => {
         longitude: -122.4194,
         zoom: 10,
     });
-    const [hexes, setHexes] = useState([]);
     const [selectedHexSizes, setSelectedHexSizes] = useState([7]); // Default resolution
-    const [selectedHexes, setSelectedHexes] = useState([]);
+    const [selectedHexes, setSelectedHexes] = useState([]); // Holds selected hex data
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [mapStyle, setMapStyle] = useState(
         "mapbox://styles/mapbox/streets-v11"
@@ -37,41 +36,9 @@ const MapDetails = ({ setHexDetails }) => {
         setIsDropdownOpen(false);
     };
 
-    // Draw hexagons for selected sizes
-    const drawHexagons = useCallback(
-        (bounds) => {
-            const sw = bounds.getSouthWest();
-            const ne = bounds.getNorthEast();
-
-            const swLat = sw.lat;
-            const swLng = sw.lng;
-            const neLat = ne.lat;
-            const neLng = ne.lng;
-
-            let hexagons = [];
-            selectedHexSizes.forEach((size) => {
-                for (let lat = swLat; lat <= neLat; lat += 0.1) {
-                    for (let lng = swLng; lng <= neLng; lng += 0.1) {
-                        const hexIndex = latLngToCell(lat, lng, size);
-                        hexagons.push(hexIndex);
-                    }
-                }
-            });
-            setHexes([...new Set(hexagons)]); // Remove duplicates
-        },
-        [selectedHexSizes]
-    );
-
-    const onMapMove = (event) => {
-        const mapBounds = event.target.getBounds();
-        drawHexagons(mapBounds);
-    };
-
     const handleMapClick = (event) => {
         const { lat, lng } = event.lngLat;
         if (!lat || !lng) return;
-
-        if (isNaN(lat) || isNaN(lng)) return;
 
         const hexIndex = latLngToCell(lat, lng, selectedHexSizes[0]);
 
@@ -168,7 +135,7 @@ const MapDetails = ({ setHexDetails }) => {
                         className="bg-green-500 p-2 rounded-md text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400"
                         onClick={toggleMapStyle}
                     >
-                        Toggle For View
+                        Toggle View
                     </button>
                 </div>
             </nav>
@@ -188,22 +155,11 @@ const MapDetails = ({ setHexDetails }) => {
                         className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         onChange={handleHexSizeChange}
                     >
-                        <option value={0}>Size 0</option>
-                        <option value={1}>Size 1</option>
-                        <option value={2}>Size 2</option>
-                        <option value={3}>Size 3</option>
-                        <option value={4}>Size 4</option>
-                        <option value={5}>Size 5</option>
-                        <option value={6}>Size 6</option>
-                        <option value={7}>Size 7</option>
-                        <option value={8}>Size 8</option>
-                        <option value={9}>Size 9</option>
-                        <option value={10}>Size 10</option>
-                        <option value={11}>Size 11</option>
-                        <option value={12}>Size 12</option>
-                        <option value={13}>Size 13</option>
-                        <option value={14}>Size 14</option>
-                        <option value={15}>Size 15</option>
+                        {Array.from({ length: 16 }).map((_, i) => (
+                            <option key={i} value={i}>
+                                Size {i}
+                            </option>
+                        ))}
                     </select>
                 </div>
             )}
@@ -215,37 +171,11 @@ const MapDetails = ({ setHexDetails }) => {
                     <Map
                         initialViewState={viewport}
                         style={{ width: "100%", height: "100%" }}
-                        mapStyle={mapStyle} // Dynamically changing map style
+                        mapStyle={mapStyle}
                         mapboxAccessToken={mapboxToken}
-                        onMoveEnd={onMapMove}
                         onClick={handleMapClick}
                         attributionControl={false}
                     >
-                        <Source
-                            id="hexes"
-                            type="geojson"
-                            data={{
-                                type: "FeatureCollection",
-                                features: hexes.map((hex) => ({
-                                    type: "Feature",
-                                    geometry: {
-                                        type: "Polygon",
-                                        coordinates: [cellToBoundary(hex, true)],
-                                    },
-                                    properties: {},
-                                })),
-                            }}
-                        >
-                            <Layer
-                                id="hex-layer"
-                                type="fill"
-                                paint={{
-                                    "fill-color": "#088",
-                                    "fill-opacity": 0.4,
-                                }}
-                            />
-                        </Source>
-
                         {/* Display selected hexes */}
                         {selectedHexes.map((hex, index) => (
                             <Source
@@ -283,20 +213,17 @@ const MapDetails = ({ setHexDetails }) => {
                 <div className="w-1/3 p-4 bg-gray-100">
                     <h2 className="text-lg font-semibold text-gray-800">Hex Details</h2>
                     {selectedHexes.length > 0 ? (
-                        <div>
-                            {selectedHexes.map((hex, index) => (
-                                <div key={index} className="mb-4">
-                                    <p className="text-sm text-gray-800">Hex Index: {hex.hexIndex}</p>
-                                    <p className="text-sm text-gray-800">Lat./Lng.: {hex.lat.toFixed(5)}, {hex.lng.toFixed(5)}</p>
-                                    <p className="text-sm text-gray-800">Base Cell: {hex.baseCell}</p>
-                                    <p className="text-sm text-gray-800">Is Pentagon: {hex.isPentagon ? "True" : "False"}</p>
-                                    <p className="text-sm text-gray-800">Icosa Face IDs: {popupInfo.faces.join(", ")}</p>
-                                    <p className="text-sm text-gray-800"># of Boundary Verts: {hex.numBoundaryVerts}</p>
-                                    <p className="text-sm text-gray-800">Area: {hex.areaInKm2.toFixed(2)} km²</p>
-                                    <p className="text-sm text-gray-800">Resolution: {selectedHexSizes.join(", ")}</p> {/* Added Resolution */}
-                                </div>
-                            ))}
-                        </div>
+                        selectedHexes.map((hex, index) => (
+                            <div key={index} className="mb-4">
+                                <p className="text-sm text-gray-800">Hex Index: {hex.hexIndex}</p>
+                                <p className="text-sm text-gray-800">Lat./Lng.: {hex.lat.toFixed(5)}, {hex.lng.toFixed(5)}</p>
+                                <p className="text-sm text-gray-800">Base Cell: {hex.baseCell}</p>
+                                <p className="text-sm text-gray-800">Is Pentagon: {hex.isPentagon ? "True" : "False"}</p>
+                                <p className="text-sm text-gray-800">Icosa Face IDs: {hex.faces.join(", ")}</p>
+                                <p className="text-sm text-gray-800"># of Boundary Verts: {hex.numBoundaryVerts}</p>
+                                <p className="text-sm text-gray-800">Area: {hex.areaInKm2.toFixed(2)} km²</p>
+                            </div>
+                        ))
                     ) : (
                         <p className="text-sm text-gray-600">Click on a hexagon to see details</p>
                     )}
